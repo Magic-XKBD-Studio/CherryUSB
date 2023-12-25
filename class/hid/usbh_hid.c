@@ -8,7 +8,7 @@
 
 #define DEV_FORMAT "/dev/input%d"
 
-USB_NOCACHE_RAM_SECTION USB_MEM_ALIGNX uint8_t g_hid_buf[128];
+USB_NOCACHE_RAM_SECTION USB_MEM_ALIGNX uint8_t g_hid_buf[256];
 
 static struct usbh_hid g_hid_class[CONFIG_USBHOST_MAX_HID_CLASS];
 static uint32_t g_devinuse = 0;
@@ -47,7 +47,7 @@ static int usbh_hid_get_report_descriptor(struct usbh_hid *hid_class, uint8_t *b
     setup->bRequest = USB_REQUEST_GET_DESCRIPTOR;
     setup->wValue = HID_DESCRIPTOR_TYPE_HID_REPORT << 8;
     setup->wIndex = hid_class->intf;
-    setup->wLength = 128;
+    setup->wLength = 256;
 
     ret = usbh_control_transfer(hid_class->hport->ep0, setup, g_hid_buf);
     if (ret < 0) {

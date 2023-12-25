@@ -610,8 +610,10 @@ USBD_IRQHandler(void)
     } else if (intflag & RB_UIF_SUSPEND) {
         if (CH58x_USBFS_DEV->USB_MIS_ST & RB_UMS_SUSPEND) {
             /*!< Suspend */
+            usbd_event_suspend_handler();
         } else {
             /*!< Wake up */
+            usbd_event_resume_handler();
         }
         CH58x_USBFS_DEV->USB_INT_FG = RB_UIF_SUSPEND;
     } else {

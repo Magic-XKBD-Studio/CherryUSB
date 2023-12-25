@@ -450,6 +450,7 @@ static int usbh_reset_port(const uint8_t port)
     /*!< Enable HUB Port */
     USBFS_HOST->HOST_CTRL |= USBFS_UH_PORT_EN;
     // USBFS_HOST->HOST_SETUP |= USBFS_UH_SOF_EN;
+    USBFS_HOST->INT_FG = 0xff;
     USBFS_HOST->INT_EN |= USBFS_UIE_DETECT;
     g_chusb_hcd.port_pe = 1;
     return 0;
@@ -1106,6 +1107,7 @@ static int8_t chusb_inpipe_irq_handler(uint8_t res_state)
                                 urb->errorcode = -EBUSY;
                                 g_chusb_hcd.current_token = 0;
                                 urb->actual_length = 0;
+                                // chusb_pipe_waitup(g_chusb_hcd.current_pipe, true);
                                 chusb_pipe_waitup(g_chusb_hcd.current_pipe, false);
                             }
                         }

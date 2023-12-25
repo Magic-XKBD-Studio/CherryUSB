@@ -11,7 +11,7 @@
 struct usbh_hid {
     struct usbh_hubport *hport;
 
-    uint8_t report_desc[128];
+    uint8_t report_desc[256];
     uint8_t intf; /* interface number */
     uint8_t minor;
     usbh_pipe_t intin;  /* INTR IN endpoint */

@@ -607,7 +607,16 @@ static void usbh_hub_events(struct usbh_hub *hub)
                     USB_LOG_INFO("New %s device on Hub %u, Port %u connected\r\n", speed_table[speed], hub->index, port + 1);
 
                     /* create disposable thread to enumerate device on current hport, do not block hub thread */
-                    child->thread = usb_osal_thread_create("usbh_enum", CONFIG_USBHOST_PSC_STACKSIZE, CONFIG_USBHOST_PSC_PRIO + 1, usbh_hubport_enumerate_thread, (void *)child);
+                    // child->thread = usb_osal_thread_create("usbh_enum", CONFIG_USBHOST_PSC_STACKSIZE, CONFIG_USBHOST_PSC_PRIO + 1, usbh_hubport_enumerate_thread, (void *)child);
+                    /* Configure EP0 with the default maximum packet size */
+                    usbh_hport_activate_ep0(child);
+
+                    if (usbh_enumerate(child) < 0) {
+                        /** release child sources */
+                        usbh_hubport_release(child);
+                        USB_LOG_ERR("Port %u enumerate fail\r\n", port + 1);
+                    }
+
                 } else {
                     child = &hub->child[port];
                     /** release child sources */

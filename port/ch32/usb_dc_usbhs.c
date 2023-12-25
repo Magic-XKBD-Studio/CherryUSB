@@ -69,7 +69,7 @@ int usb_dc_init(void)
 
     USBHS_DEVICE->INT_FG = 0xff;
     USBHS_DEVICE->INT_EN = 0;
-    USBHS_DEVICE->INT_EN = USBHS_SETUP_ACT_EN | USBHS_TRANSFER_EN | USBHS_DETECT_EN;
+    USBHS_DEVICE->INT_EN = USBHS_SETUP_ACT_EN | USBHS_TRANSFER_EN | USBHS_DETECT_EN | USBHS_SUSPEND_EN;
 
     /* ALL endpoint enable */
     USBHS_DEVICE->ENDP_CONFIG = 0xffffffff;
@@ -247,6 +247,10 @@ int usbd_ep_start_read(const uint8_t ep, uint8_t *data, uint32_t data_len)
 
 void USBD_IRQHandler(void)
 {
+    asm("csrrw sp,mscratch,sp");
+    extern void rt_interrupt_enter(void);
+    rt_interrupt_enter();
+
     uint32_t ep_idx, token, write_count, read_count;
     uint8_t intflag = 0;
 
@@ -258,7 +262,7 @@ void USBD_IRQHandler(void)
 
         if (token == PID_IN) {
             if (ep_idx == 0x00) {
-                if (g_ch32_usbhs_udc.in_ep[ep_idx].xfer_len > g_ch32_usbhs_udc.in_ep[ep_idx].ep_mps) {
+                if (g_ch32_usbhs_udc.in_ep[ep_idx].xfer_len >= g_ch32_usbhs_udc.in_ep[ep_idx].ep_mps) {
                     g_ch32_usbhs_udc.in_ep[ep_idx].xfer_len -= g_ch32_usbhs_udc.in_ep[ep_idx].ep_mps;
                     g_ch32_usbhs_udc.in_ep[ep_idx].actual_xfer_len += g_ch32_usbhs_udc.in_ep[ep_idx].ep_mps;
                     ep0_tx_data_toggle ^= 1;
@@ -373,5 +377,17 @@ void USBD_IRQHandler(void)
         USBHS_DEVICE->UEP0_DMA = (uint32_t)&g_ch32_usbhs_udc.setup;
         USBHS_DEVICE->UEP0_RX_CTRL = USBHS_EP_R_RES_ACK;
         USBHS_DEVICE->INT_FG = USBHS_DETECT_FLAG;
+    } else if (intflag & USBHS_SUSPEND_FLAG) {
+        /* usb suspend interrupt processing */
+        USBHS_DEVICE->INT_FG = USBHS_SUSPEND_FLAG;
+        if (USBHS_DEVICE->MIS_ST & USBHS_SUSPEND) {
+            usbd_event_suspend_handler();
+        } else {
+            usbd_event_resume_handler();
+        }
     }
+
+    asm("csrrw sp,mscratch,sp");
+    extern void rt_interrupt_leave(void);
+    rt_interrupt_leave();
 }
