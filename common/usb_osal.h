@@ -9,6 +9,8 @@
 #include <stdint.h>
 #include <string.h>
 
+#define USB_OSAL_WAITING_FOREVER (0xFFFFFFFFU)
+
 typedef void *usb_osal_thread_t;
 typedef void *usb_osal_sem_t;
 typedef void *usb_osal_mutex_t;
@@ -25,6 +27,7 @@ usb_osal_sem_t usb_osal_sem_create(uint32_t initial_count);
 void usb_osal_sem_delete(usb_osal_sem_t sem);
 int usb_osal_sem_take(usb_osal_sem_t sem, uint32_t timeout);
 int usb_osal_sem_give(usb_osal_sem_t sem);
+void usb_osal_sem_reset(usb_osal_sem_t sem);
 
 usb_osal_mutex_t usb_osal_mutex_create(void);
 void usb_osal_mutex_delete(usb_osal_mutex_t mutex);
@@ -32,6 +35,7 @@ int usb_osal_mutex_take(usb_osal_mutex_t mutex);
 int usb_osal_mutex_give(usb_osal_mutex_t mutex);
 
 usb_osal_mq_t usb_osal_mq_create(uint32_t max_msgs);
+void usb_osal_mq_delete(usb_osal_mq_t mq);
 int usb_osal_mq_send(usb_osal_mq_t mq, uintptr_t addr);
 int usb_osal_mq_recv(usb_osal_mq_t mq, uintptr_t *addr, uint32_t timeout);
 
